@@ -1,6 +1,7 @@
  ![SonarQube](images/sonar.png)![Amazon ECS](https://img.shields.io/static/v1?style=for-the-badge&message=Amazon+ECS&color=222222&logo=Amazon+ECS&logoColor=FF9900&label=)![Static Badge](https://img.shields.io/badge/Go-v1.21-blue:) ![Static Badge](https://img.shields.io/badge/AWS_CDK-v2.96.2-blue:)
 
 
+
 SonarQube is a powerful code quality management tool that helps developers identify and correct code quality and security issues. The purpose of this tutorial is to look at how to deploy SonarQube on AWS Elastic Container Service (ECS) Fargate.
 This deployment is the extraction of a larger deployment that included several ECS Fargate servers as well as several sonarqube instances and sonarqube databases on an RDS instance.
 
