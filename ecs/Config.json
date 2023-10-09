@@ -1,0 +1,7 @@
+{
+	"Region":          "eu-central-1",
+	"ClusterName" : "ClustPartner",
+	"Index": "01",
+	"VPCid" : "vpc-0fd4d074b373354cc",
+	"SecurityGroupID" : "sg-0d8ac80b189512b0f"
+}

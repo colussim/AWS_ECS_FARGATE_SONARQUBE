@@ -1,0 +1,92 @@
+{
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "family": "sonarapp",
+      "containerDefinitions": [
+        {
+            "name": "sonarqube",
+            "image": "docker.io/sonarqube:enterprise",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "name": "sonarqube-9000-tcp",
+                    "containerPort": 9000,
+                    "hostPort": 9000,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "command": [
+                "-Dsonar.search.javaAdditionalOpts=-Dnode.store.allow_mmap=false"
+            ],
+            "environment": [],
+            "environmentFiles": [],
+            "mountPoints": [
+                {
+                    "sourceVolume": "EFSsonarData",
+                    "containerPath": "/opt/sonarqube/data",
+                    "readOnly": false
+                },
+                {
+                    "sourceVolume": "EFSsonarLogs",
+                    "containerPath": "/opt/sonarqube/logs",
+                    "readOnly": false
+                }
+            ],
+            "volumesFrom": [],
+            "ulimits": [
+                {
+                    "name": "nproc",
+                    "softLimit": 8192,
+                    "hardLimit": 8192
+                },
+                {
+                    "name": "nofile",
+                    "softLimit": 131072,
+                    "hardLimit": 131072
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "/ecs/sonarapp",
+                    "awslogs-region": "eu-central-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ],
+     "volumes": [
+        {
+            "name": "EFSsonarData",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-0de6ddc0bfce58aef",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED",
+                "authorizationConfig": {
+                    "accessPointId": "fsap-0ab6426a9d61a5934",
+                    "iam": "DISABLED"
+                }
+            }
+        },
+        {
+            "name": "EFSsonarLogs",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-0eef69f4db454d45d",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED",
+                "authorizationConfig": {
+                    "accessPointId": "fsap-0810cb4c2b2b7ceb9",
+                    "iam": "DISABLED"
+                }
+            }
+        }
+    ],
+    "networkMode": "awsvpc",
+    "cpu": "1024",
+    "memory": "8192",
+    "executionRoleArn": "arn:aws:iam::103078382956:role/ecsTaskExecutionRole"
+}

@@ -1,0 +1,23 @@
+{
+	"SecretName":       "",
+	"DescSecret":		"Secret associated with primary RDS DB instance",
+	"Region":          "eu-central-1a",
+	"Instanceclass":   "db.m5d.xlarge",
+	"Version":			"15.3",
+	"DBsize":			"30",
+	"Engine": "postgres",
+	"BackupRetentionPeriod": 1,
+	"DBName": "DBpartner",
+	"DBid": "01",
+	"MasterUsername": "postgres",
+	"MasterUserPassword": "xxxxxxxxx",
+	"SubnetGroup": "default-vpc-xxxxxxx",
+	"VPCid" : "vpc-xxxxxxxxxx",
+	"VPCname": "sonar-vpc",
+	"SecurityGroupID" : "sg-xxxxxxxxxx",
+	"SecretNameSonarqube" : "prod/sonarqube/sonar",
+	"SonarqubeUserPassword": "xxxxxxxxxx",
+	"SonarqubeDescSecret":		"Secret associated with Access to PostgreSQL databases partner"
+
+
+}

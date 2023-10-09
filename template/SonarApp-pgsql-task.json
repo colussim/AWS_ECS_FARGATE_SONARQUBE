@@ -1,0 +1,114 @@
+{
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "family": "sonarapp",
+    "containerDefinitions": [
+        {
+            "name": "SonarQubeContainer",
+            "image": "docker.io/sonarqube:enterprise",
+            "cpu": 0,
+            "links": [],
+            "portMappings": [
+                {
+                    "containerPort": 9000,
+                    "hostPort": 9000,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "entryPoint": [],
+            "command": [
+                "-Dsonar.search.javaAdditionalOpts=-Dnode.store.allow_mmap=false"
+            ],
+            "environment": [
+                {
+                    "name": "SONAR_JDBC_URL",
+                    "value": "jdbc:postgresql://X.X.X.X/sonarqube"
+                },
+                {
+                    "name": "SONAR_JDBC_USERNAME",
+                    "value": "sonar"
+                },
+                {
+                    "name": "SONAR_JDBC_PASSWORD",
+                    "value": "sonar"
+                }
+            ],
+            "environmentFiles": [],
+            "mountPoints": [
+                {
+                    "sourceVolume": "EFSsonarData03",
+                    "containerPath": "/opt/sonarqube/data",
+                    "readOnly": false
+                },
+                {
+                    "sourceVolume": "EFSsonarLogs04",
+                    "containerPath": "/opt/sonarqube/logs",
+                    "readOnly": false
+                }
+            ],
+            "volumesFrom": [],
+            "secrets": [],
+            "dnsServers": [],
+            "dnsSearchDomains": [],
+            "extraHosts": [],
+            "dockerSecurityOptions": [],
+            "dockerLabels": {},
+            "ulimits": [
+                {
+                    "name": "nofile",
+                    "softLimit": 131072,
+                    "hardLimit": 131072
+                },
+                {
+                    "name": "nproc",
+                    "softLimit": 8192,
+                    "hardLimit": 8192
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "SonarPartnerStack2-SonarTaskDefSonarQubeContainerLogGroupA2A639BE-7wbkax8wvoUG",
+                    "awslogs-region": "eu-central-1",
+                    "awslogs-stream-prefix": "Sonarqube"
+                },
+                "secretOptions": []
+            },
+            "systemControls": []
+        }
+    ],
+   
+    "executionRoleArn": "arn:aws:iam::103078382956:role/SonarPartnerStack2-SonarTaskDefExecutionRole2A11FB-1X0WHA6HZSC59",
+    "networkMode": "awsvpc",
+    "revision": 60,
+    "volumes": [
+        {
+            "name": "EFSsonarLogs04",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-0e1fb14bfa47eebc2",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED",
+                "authorizationConfig": {
+                    "accessPointId": "fsap-0b07e46da37fab946"
+                }
+            }
+        },
+        {
+            "name": "EFSsonarData03",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-093b218043193de75",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED",
+                "authorizationConfig": {
+                    "accessPointId": "fsap-030a86e4d868a9977"
+                }
+            }
+        }
+    ],
+  
+    "cpu": "512",
+    "memory": "4096"
+  
+}

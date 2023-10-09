@@ -1,0 +1,14 @@
+{
+	"SecretName":       "secretName",
+	"Region":          "eu-central-1",
+	"Endpoint":         "database hosts",
+	"Secretmastername": "rds secret name", 
+	"PortDB":           "5432",
+	"MasterDB":         "postgres",
+    "MasterUser":       "postgres",
+	"Index":           "1",
+	"VPCid" : "vpc-xxxxxx",
+	"SecurityGroupID" : "sg-xxxxx",
+	"LambdaFunctionName": "InitLambdaFn-SonarInitDB01",
+	"SecretNameSonarqube" : "prod/sonarqube/sonar"
+}
