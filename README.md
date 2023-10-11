@@ -31,23 +31,26 @@ We'll use the same VPC and Security Group to deploy the PostgreSQL RDS instance 
 
 ### Deploy AWS RDS PostgreSQL.
 
-go to directory database (please read the README.md)
+go to directory [database](https://nodejs.org/en](https://github.com/colussim/AWS_ECS_FARGATE_SONARQUBE/tree/main/database) (please read the README.md)
 
 ## Deploy AWS ECS Fargate cluster.
 
-go to directory ecs (please read the README.md)
+go to directory [ecs](https://nodejs.org/en](https://github.com/colussim/AWS_ECS_FARGATE_SONARQUBE/tree/main/ecs) (please read the README.md)
 
 ## Deploy AWS Lambda function 
 
-go to directory createdb (please read the README.md)
+go to directory [createdb][(https://nodejs.org/en)](https://github.com/colussim/AWS_ECS_FARGATE_SONARQUBE/tree/main/createdb) (please read the README.md)
 
 ## Deploy SonarQube
 
-go to directory sonarqube (please read the README.md)
+go to directory [sonarqube][(https://nodejs.org/en)](https://github.com/colussim/AWS_ECS_FARGATE_SONARQUBE/tree/main/sonarqube) (please read the README.md)
 
 
 
 # Next steps
+
+At this stage the sonarqube deployment provides a public address ip, in a next step I'll do the integration in a dns domain and https access with certificate.
+
 - create a DNS sub-domain
 - Create a ssl certification 
 - integration in cloudfront
