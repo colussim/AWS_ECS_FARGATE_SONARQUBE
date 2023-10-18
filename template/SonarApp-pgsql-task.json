@@ -80,7 +80,7 @@
         }
     ],
    
-    "executionRoleArn": "arn:aws:iam::103078382956:role/SonarPartnerStack2-SonarTaskDefExecutionRole2A11FB-1X0WHA6HZSC59",
+    "executionRoleArn": "arn:aws:iam::xxxxxx:role/SonarPartnerStack2-SonarTaskDefExecutionRole2A11FB-1X0WHA6HZSC59",
     "networkMode": "awsvpc",
     "revision": 60,
     "volumes": [
