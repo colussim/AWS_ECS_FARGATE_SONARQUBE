@@ -20,5 +20,6 @@
 	"Cpu": 2048,
 	"MemoryLimitMiB": 4096,
 	"Taskname":	"SonarTaskDef",
-	"EcsRole":"xxxxx"
+	"EcsRole":"xxxxx",
+	"RessourcesARNMT":"arn:aws:elasticfilesystem:*:XXXXXXXXX:file-system/*"
 }
