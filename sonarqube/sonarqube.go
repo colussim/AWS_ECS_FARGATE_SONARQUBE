@@ -7,34 +7,15 @@ import (
 	"log"
 	"os"
 
-	//"github.com/aws/aws-cdk-go/awscdk/awsservicediscovery"
-
 	"github.com/aws/aws-cdk-go/awscdk/v2"
-
-	//"github.com/aws/aws-cdk-lib/aws_route53"
-
-	//"github.com/aws/aws-cdk-lib/aws_route53"
-
-	//"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53targets"
-
-	//"github.com/aws/aws-cdk-lib/aws_route53"
-
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsecs"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsefs"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 
-	//"github.com/aws/aws-cdk-lib/aws_elasticloadbalancingv2"
-	//"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
-	//"github.com/aws/aws-cdk-lib/aws_servicediscovery"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-
-	//	"github.com/aws/aws-sdk-go-v2/service/servicediscovery"
-
-	//"github.com/aws/aws-sdk-go/service/ecs"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -68,11 +49,9 @@ type Configuration struct {
 	MemoryLimitMiB      float64
 	Taskname            string
 	EcsRole             string
+	RessourcesARNMT	    string
 }
 
-//type SecretData struct {
-//	DBPasswordpart string `json:"dbPasswordpart"`
-//}
 
 type RegionA struct {
 	StringRegion []*string
@@ -117,6 +96,7 @@ func NewSonarqubeStack(scope constructs.Construct, id string, props *SonarqubeSt
 	}
 
 	// Create an IAM policy for EFS access
+	RSarnEFS:=AppConfig.RessourcesARNMT
 	efsPolicy := awsiam.NewPolicy(stack, jsii.String("EfsPolicy"), &awsiam.PolicyProps{
 		PolicyName: jsii.String("EFSAccessPolicy"),
 		Statements: &[]awsiam.PolicyStatement{
@@ -127,8 +107,8 @@ func NewSonarqubeStack(scope constructs.Construct, id string, props *SonarqubeSt
 					jsii.String("elasticfilesystem:ClientWrite"),
 				},
 				Resources: &[]*string{
-					jsii.String("arn:aws:elasticfilesystem:*:103078382956:file-system/*"),
-					//jsii.String(RessourcesARNMT),
+					//jsii.String("arn:aws:elasticfilesystem:*:XXXXXXX:file-system/*"),
+					jsii.String(RSarnEFS),
 				},
 			}),
 		},
@@ -159,8 +139,6 @@ func NewSonarqubeStack(scope constructs.Construct, id string, props *SonarqubeSt
 	// Decrypts secret using the associated KMS key.
 	var secretString string = *result.SecretString
 
-	//var secretData map[string]interface{}
-	//json.Unmarshal([]byte(secretString), &secretData)
 
 	/*------------------------ Connect to RDS instance and create Database --------------------------*/
 
