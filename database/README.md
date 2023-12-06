@@ -11,12 +11,12 @@ The purpose of this deployment is to run an AWS RDS PostgreSQL instance.
 ```
 Config.json :
 
-    SecretName:             secret name for RDS database access
-	DescSecret:		        Description : Secret associated with primary RDS DB instance: DBSonar01
+    SecretName:                 secret name for RDS database access
+	DescSecret:	        Description : Secret associated with primary RDS DB instance: DBSonar01
 	Region:                 Deployment region
 	Instanceclass:          Instance class
-	Version:		        Version of PostgreSQL
-	DBsize:			        DB size
+	Version:		Version of PostgreSQL
+	DBsize:			DB size
 	Engine:                 postgres
 	BackupRetentionPeriod:  1
 	DBName:                 dbname instance
@@ -59,3 +59,11 @@ func env() *awscdk.Environment {
  * `cdk diff`        compare deployed stack with current state
  * `cdk synth`       emits the synthesized CloudFormation template
 
+## Setup Environment
+
+Run the following command to automatically install all the required modules based on the go.mod and go.sum files:
+
+```bash
+CDK:> go mod download
+
+```
