@@ -32,7 +32,7 @@ Config.json :
 	Taskname            Task name
 	EcsRole             ECS Role used for deployment
         RessourcesARNMT     Ressource ARN for EFS : "arn:aws:elasticfilesystem:*:XXXXXXXXX:file-system/*" 
-
+```
 For RessourcesARNMT variable replace XXXXXXXXX with your AWS account.
 Before deploying your task, you need to modify the sonarqube.go file and setup environment variables: 
 
