@@ -42,3 +42,11 @@ func env() *awscdk.Environment {
  * `cdk deploy`      deploy this stack to your default AWS account/region
  * `cdk diff`        compare deployed stack with current state
  * `cdk synth`       emits the synthesized CloudFormation template
+
+## Setup Environment
+
+Run the following command to automatically install all the required modules based on the go.mod and go.sum files:
+
+```bash
+:> go mod download
+```
