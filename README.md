@@ -2,9 +2,9 @@
 
 
 
-SonarQube is a powerful code quality management tool that helps developers identify and correct code quality and security issues. The purpose of this tutorial is to look at how to deploy SonarQube on AWS Elastic Container Service (ECS) Fargate.
+SonarQube is a powerful code quality management tool that helps developers identify and correct code quality and security issues.
+This tutorial aims to show you how to set up SonarQube on AWS Elastic Container Service (ECS) Fargate. Throughout this guide, we'll walk you through the steps of deploying SonarQube in an ECS Fargate environment using AWS CDK with Golang.
 
-The purpose of this tutorial is to guide you through the various steps involved in deploying sonarqube in an ECS Fargate environment using AWS CDK for golang.
 
 This deployment is the extraction of a larger deployment that included several ECS Fargate servers as well as several sonarqube instances and sonarqube databases on an RDS instance.
 
