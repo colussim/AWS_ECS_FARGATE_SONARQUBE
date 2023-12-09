@@ -20,6 +20,8 @@ This deployment is the extraction of a larger deployment that included several E
 Before you get started, you’ll need to have these things:
 
 * AWS account
+* SSO Login
+* [AWS CLI V2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 * [AWS Cloud Development Kit (AWS CDK) v2](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
 * [Go language installed](https://go.dev/)
 * [Node.jjs installed](https://nodejs.org/en)
