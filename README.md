@@ -13,7 +13,7 @@ A CloudFormation template is generated for each deployment.
 
 This deployment is the extraction of a larger deployment that included several ECS Fargate servers as well as several sonarqube instances and sonarqube databases on an RDS instance.
 
-![Azure AKS, Azure AKS](/images/aws-ecs-fargate-sonar.jpg)
+![Azure AKS, Azure AKS](/images/aws-ecs-fargate-sonar.png)
 
 ## Prerequisites
 
