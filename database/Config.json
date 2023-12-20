@@ -9,10 +9,10 @@
 	"DBName": "DBsonar",
 	"DBport": "5432",
 	"MasterUsername": "postgres",
-	"MasterUserPassword": "Bench123",
+	"MasterUserPassword": "xxxxxx",
 	"SubnetGroup": "sonarrds",
 	"SecretNameSonarqube" : "prod/sonarqube",
-	"SonarqubeUserPassword": "Bench123",
+	"SonarqubeUserPassword": "xxxxx",
 	"SonarqubeDescSecret":		"Secret associated with Access to PostgreSQL databases"
 
 
