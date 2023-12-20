@@ -1,53 +1,28 @@
-![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)![Amazon ECS](https://img.shields.io/static/v1?style=for-the-badge&message=Amazon+ECS&color=222222&logo=Amazon+ECS&logoColor=FF9900&label=)![Static Badge](https://img.shields.io/badge/Go-v1.21-blue:) ![Static Badge](https://img.shields.io/badge/AWS_CDK-v2.96.2-blue:)
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)![Amazon ECS](https://img.shields.io/static/v1?style=for-the-badge&message=Amazon+ECS&color=222222&logo=Amazon+ECS&logoColor=FF9900&label=)![Static Badge](https://img.shields.io/badge/Go-v1.21-blue:) ![Static Badge](https://img.shields.io/badge/AWS_CDK-v2.115.0-blue:)
 
 
 # Welcome to your CDK Deployment with Go.
 
 * The `cdk.json` file tells the CDK toolkit how to execute your app.
 * The `Config.json` Contains the parameters to be initialized to deploy the task :
+
+
 ```
 Config.json :
 
     SecretNameSonarqube secret name to store access sonarqube
-	Region              Deployment region
-	Endpoint            string
-	Secretmastername    Secret master name
-	SecretRDS           secret name for RDS database access
-	PortDB              database hosts
-	MasterDB            Master DB name default postgres
-	MasterUser          Master user name default postgres
-	Index               index for dbname : 01
+	Endpoint            EndPoint to access RDS Instance
 	SonarvolumeName1    EFS Volume Data
 	SonarvolumeName2    EFS Volume Log
 	ClusterName         ECS Cluster name
-	ClusterARN          ECS Cluster ARN
-	VPCid               the VPC ID
-	SecurityGroupID     Security Group ID
 	SonarImages         Sonar docker image
-	Urlconnect          jdbc url
+	Urlconnect          jdbc url indice : **jdbc:postgresql://**
 	UriDatabaseType     postgres
 	DesiredCount        count deployment
 	Cpu                 CPU number
 	MemoryLimitMiB      Memory size
 	Taskname            Task name
-	EcsRole             ECS Role used for deployment
-        RessourcesARNMT     Ressource ARN for EFS : "arn:aws:elasticfilesystem:*:XXXXXXXXX:file-system/*" 
 ```
-For RessourcesARNMT variable replace XXXXXXXXX with your AWS account.
-Before deploying your task, you need to modify the sonarqube.go file and setup environment variables: 
-
-Set your AWS account number and your deployment region :
-
-```
-sonarqube.go
-
-func env() *awscdk.Environment {
-	return &awscdk.Environment{
-		Account: jsii.String("xxxxxx"),
-		Region:  jsii.String("eu-central-1"),
-	}
-}
-``` 
 
 ## What does this task do?
 
@@ -57,16 +32,84 @@ func env() *awscdk.Environment {
 - Provision an external ip address : to connect to sonarqube
 
 
-## Useful commands
+## ✅ Useful commands
 
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk synth`       emits the synthesized CloudFormation template
+ * `./cdk.sh deploy`      deploy this stack to your default AWS account/region
+ * `./cdk.sh destroy`     cleaning up stack
 
-## Setup Environment
+## ✅ Setup Environment
 
 Run the following command to automatically install all the required modules based on the go.mod and go.sum files:
 
 ```bash
-:> go mod download
+AWS_ECS_FARGATE_SONARQUBE:/sonarqube/> go mod download
+
 ```
+## ✅ Deploying your Lambda function
+
+Let’s deploy a SonarQube! When you’re ready, run **cdk.sh deploy**
+
+```bash
+AWS_ECS_FARGATE_SONARQUBE:/createdb/> ./cdk.sh deploy
+
+✅  SonarqubeStack02
+
+✨  Deployment time: 164.06s
+
+Stack ARN:
+arn:aws:cloudformation:eu-central-1:xxxxxstack/SonarqubeStack02/75d22490-9ea6-11ee-abb5-02cf4265638b
+
+✨  Total time: 168.71s
+
+
+✅  GetPublicIP02
+
+✨  Deployment time: 16.89s
+
+Outputs:
+GetPublicIP02.SonarQubeEndPoint = http://X.X.X.X:9000
+Stack ARN:
+arn:aws:cloudformation:eu-central-1:xxxxx:stack/GetPublicIP02/fb7c04c0-9ea7-11ee-b29d-029678f61543
+
+✨  Total time: 20.45s
+
+```
+
+You'll have to wait a few minutes for the External address to be bindered :
+**GetPublicIP02.SonarQubeEndPoint = http://X.X.X.X:9000**
+
+😀 Now you can connect to the SonarQube instance at the following url sample:
+
+http://X.X.X.X:9000
+
+
+ ![SonarQube Login](images/sonarlogin.png)
+
+Default admin credentials
+When installing SonarQube, a default user with Administer System permission is created automatically:
+
+* Login: admin
+* Password: admin
+
+The first time you connect to intense sonarqube, you must change the administrator password:
+ ![SonarQube passwd](images/changepass.png)
+
+
+❗️ If you are using a Developer or Enterprise version of sonarqube, before proceeding to the next step you must enter the license number.
+Go to menu  **Administration/Configuration/License Manager**
+
+ ![SonarQube license](images/needlicense.png)
+
+  ![SonarQube Add license](images/addlicense.png)
+
+
+-----
+<table>
+<tr style="border: 0px transparent">
+	<td style="border: 0px transparent"> <a href="../createdb/README.md" title="Creating a sonarqube databaser">⬅ Previous</a></td><td style="border: 0px transparent"><a href="../README.md" title="home">🏠</a></td>
+</tr>
+<tr style="border: 0px transparent">
+<td style="border: 0px transparent">Creating a sonarqube database</td><td style="border: 0px transparent">Home</td><td style="border: 0px transparent"></td>
+</tr>
+
+</table>

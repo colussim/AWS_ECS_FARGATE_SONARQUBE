@@ -1,0 +1,8 @@
+{
+"Region":       "eu-central-1",
+"Account" : "247552951819",
+"SSOProfile": "default",
+"Index": "02",
+"VPCid" : "vpc-03aa0986b3d0583c0",
+"SecurityGroupID" : "sg-0dcc874f2b8dbd9b8"
+}

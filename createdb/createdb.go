@@ -28,18 +28,27 @@ type CreatedbStackProps struct {
 	awscdk.StackProps
 }
 
+type DeletedbStackProps struct {
+	awscdk.StackProps
+}
+
+type ConfAuth struct {
+	Region          string
+	Account         string
+	SSOProfile      string
+	Index           string
+	VPCid           string
+	SecurityGroupID string
+}
+
 // Declare a struct for Config fields
 type Configuration struct {
 	SecretName          string
-	Region              string
 	Endpoint            string
 	Secretmastername    string
 	PortDB              string
 	MasterDB            string
 	MasterUser          string
-	Index               string
-	VPCid               string
-	SecurityGroupID     string
 	LambdaFunctionName  string
 	SecretNameSonarqube string
 }
@@ -49,15 +58,28 @@ type SecretData struct {
 	Password string `json:"password"`
 }
 
-func GetConfig(configjs Configuration) Configuration {
+func GetConfig(configcrd ConfAuth, configjs Configuration) (ConfAuth, Configuration) {
 
-	fconfig, err := os.ReadFile("Config.json")
+	fconfig, err := os.ReadFile("config.json")
 	if err != nil {
-		panic("Problem with the configuration file : config.json")
+		panic("❌ Problem with the configuration file : config.json")
 		os.Exit(1)
 	}
-	json.Unmarshal(fconfig, &configjs)
-	return configjs
+	if err := json.Unmarshal(fconfig, &configjs); err != nil {
+		fmt.Println("❌ Error unmarshaling JSON:", err)
+		os.Exit(1)
+	}
+
+	fconfig2, err := os.ReadFile("../config_crd.json")
+	if err != nil {
+		panic("❌ Problem with the configuration file : config_crd.json")
+		os.Exit(1)
+	}
+	if err := json.Unmarshal(fconfig2, &configcrd); err != nil {
+		fmt.Println("❌ Error unmarshaling JSON:", err)
+		os.Exit(1)
+	}
+	return configcrd, configjs
 }
 
 func GetSecret(Secretname string, config aws.Config) (string, string) {
@@ -74,7 +96,8 @@ func GetSecret(Secretname string, config aws.Config) (string, string) {
 
 	result, err := svc.GetSecretValue(context.TODO(), input)
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Println("❌ Error Get Secret RDS DB", err)
+		os.Exit(1)
 
 	}
 
@@ -93,7 +116,7 @@ func GetSecret(Secretname string, config aws.Config) (string, string) {
 
 func GetSecret1(Secretname string, config aws.Config) string {
 
-	key2 := "password"
+	key2 := "dbPasswordpart"
 	// Create Secrets Manager client
 	svc := secretsmanager.NewFromConfig(config)
 
@@ -104,7 +127,8 @@ func GetSecret1(Secretname string, config aws.Config) string {
 
 	result, err := svc.GetSecretValue(context.TODO(), input)
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Println("❌ Error Get Secret Sonar", err)
+		os.Exit(1)
 
 	}
 
@@ -121,14 +145,14 @@ func GetSecret1(Secretname string, config aws.Config) string {
 	return Pass
 }
 
-func CreateLambdaFn(stack awscdk.Stack, PartVpc awsec2.IVpc, sonarSG awsec2.ISecurityGroup, AppConfig Configuration, User string, Pass string, PassSonar string) {
+func CreateLambdaFn(stack awscdk.Stack, PartVpc awsec2.IVpc, sonarSG awsec2.ISecurityGroup, AppConfig Configuration, User string, Pass string, PassSonar string, LambdaFunctionName string, Index string) {
 
 	awslambda.NewFunction(stack, &AppConfig.LambdaFunctionName, &awslambda.FunctionProps{
 		Runtime:           awslambda.Runtime_GO_1_X(),
 		Code:              awslambda.Code_FromAsset(jsii.String("lambda/"), &awss3assets.AssetOptions{}),
 		Handler:           jsii.String("main"),
 		Vpc:               PartVpc,
-		FunctionName:      &AppConfig.LambdaFunctionName,
+		FunctionName:      &LambdaFunctionName,
 		AllowPublicSubnet: aws.Bool(true),
 		Description:       jsii.String("Init SonarQube Database"),
 		SecurityGroups:    &[]awsec2.ISecurityGroup{sonarSG},
@@ -141,7 +165,8 @@ func CreateLambdaFn(stack awscdk.Stack, PartVpc awsec2.IVpc, sonarSG awsec2.ISec
 			"DATABASE_NAME":     &AppConfig.MasterDB,
 			"DATABASE_USERNAME": &User,
 			"DATABASE_PASSWORD": &Pass,
-			"DATABASE_PARTNER":  &AppConfig.Index,
+			"DATABASE_PARTNER":  &Index,
+			"PASS_SONAR":        &PassSonar,
 		},
 	})
 
@@ -162,33 +187,30 @@ func checkLambdaFunctionExists(ctx context.Context, client *lambda.Client, funct
 	return true, nil
 }
 
-func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStackProps) awscdk.Stack {
+func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStackProps, AppConfig Configuration, AppConfig1 ConfAuth) awscdk.Stack {
 	var sprops awscdk.StackProps
 	if props != nil {
 		sprops = props.StackProps
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	// Load configuration
-	var config1 Configuration
-	var AppConfig = GetConfig(config1)
-
 	// Get Context
 	config, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("❌ Error creating AWS session:", err)
+		os.Exit(1)
 	}
 
 	// Get Security Group
-	sonarSG := awsec2.SecurityGroup_FromLookupById(stack, jsii.String("SG"), &AppConfig.SecurityGroupID)
+	sonarSG := awsec2.SecurityGroup_FromLookupById(stack, jsii.String("SG"), &AppConfig1.SecurityGroupID)
 	//sonarSG := AppConfig.SecurityGroupID
 	// Get VPC
-	PartVpc := awsec2.Vpc_FromLookup(stack, &AppConfig.VPCid, &awsec2.VpcLookupOptions{VpcId: &AppConfig.VPCid})
+	PartVpc := awsec2.Vpc_FromLookup(stack, &AppConfig1.VPCid, &awsec2.VpcLookupOptions{VpcId: &AppConfig1.VPCid})
 
 	lambdaClient := lambda.NewFromConfig(config)
 
 	// Specify the name of the Lambda function you want to check
-	functionName := AppConfig.LambdaFunctionName
+	functionName := AppConfig.LambdaFunctionName + AppConfig1.Index
 
 	functionExists, err := checkLambdaFunctionExists(context.TODO(), lambdaClient, functionName)
 
@@ -209,7 +231,9 @@ func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStac
 
 		configOutput, err := lambdaClient.GetFunctionConfiguration(context.TODO(), ConfigFn)
 		if err != nil {
-			log.Fatalf("Error getting Lambda function configuration: %v", err)
+			fmt.Println("❌ Error getting Lambda function configuration: %v", err)
+			os.Exit(1)
+
 		}
 
 		// Copy existing environment variables
@@ -217,7 +241,7 @@ func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStac
 		for k, v := range configOutput.Environment.Variables {
 			newEnvVars[k] = v
 		}
-		newEnvVars[key] = AppConfig.Index
+		newEnvVars[key] = AppConfig1.Index
 
 		updateInput := &lambda.UpdateFunctionConfigurationInput{
 			FunctionName: aws.String(functionName),
@@ -229,10 +253,12 @@ func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStac
 
 		_, updateErr := lambdaClient.UpdateFunctionConfiguration(context.TODO(), updateInput)
 		if updateErr != nil {
-			log.Fatalf("Error updating Lambda function configuration: %v", updateErr)
+			fmt.Println("❌ Error updating Lambda function configuration: %v", err)
+			os.Exit(1)
+
 		}
 
-		fmt.Printf("Environment variable %s updated for Lambda function %s\n", key, functionName)
+		fmt.Printf("✅ Environment variable %s updated for Lambda function %s\n", key, functionName)
 
 		input3 := &lambda.InvokeInput{
 			FunctionName: aws.String(functionName),
@@ -242,15 +268,51 @@ func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStac
 		if err != nil {
 			panic(err)
 		} else {
-			fmt.Printf("Lambda function executed%s :\n", &resultex)
+			fmt.Printf("✅ Lambda function executed%s :\n", &resultex)
 		}
 
 	} else {
-		fmt.Printf("Lambda function %s does not exist\n", functionName)
-		User, Pass := GetSecret(AppConfig.SecretName, config)
-		PassSonar := GetSecret1(AppConfig.SecretNameSonarqube, config)
-		CreateLambdaFn(stack, PartVpc, sonarSG, AppConfig, User, Pass, PassSonar)
+		RDSsecret := AppConfig.SecretName + AppConfig1.Index
+		SonarSecret := AppConfig.SecretNameSonarqube + AppConfig1.Index
+		fmt.Printf("✅ Lambda function %s does not exist\n", functionName)
+		User, Pass := GetSecret(RDSsecret, config)
+		PassSonar := GetSecret1(SonarSecret, config)
+		CreateLambdaFn(stack, PartVpc, sonarSG, AppConfig, User, Pass, PassSonar, functionName, AppConfig1.Index)
 	}
+
+	return stack
+}
+
+func DeleteCreatedbStack(scope constructs.Construct, id string, props *DeletedbStackProps, AppConfig Configuration, AppConfig1 ConfAuth) awscdk.Stack {
+	var sprops awscdk.StackProps
+	if props != nil {
+		sprops = props.StackProps
+	}
+	stack := awscdk.NewStack(scope, &id, &sprops)
+	os.Setenv("AWS_SDK_LOAD_CONFIG", "true")
+
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		fmt.Println("❌ Failed to load AWS configuration", err)
+		os.Exit(1)
+	}
+
+	functionName := AppConfig.LambdaFunctionName + AppConfig1.Index
+
+	client := lambda.NewFromConfig(cfg)
+
+	// Call DeleteFunction API to delete the Lambda function
+	_, err = client.DeleteFunction(context.TODO(), &lambda.DeleteFunctionInput{
+		FunctionName: aws.String(functionName),
+	})
+	if err != nil {
+		fmt.Println("❌ Failed to delete Lambda function", err)
+		os.Exit(1)
+	}
+
+	awscdk.NewCfnOutput(stack, jsii.String("Lambda function :"), &awscdk.CfnOutputProps{
+		Value: aws.String("Deleted"),
+	})
 
 	return stack
 }
@@ -258,22 +320,40 @@ func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStac
 func main() {
 	defer jsii.Close()
 
+	// Read configuration from config.json file
+	var configcrd ConfAuth
+	var config1 Configuration
+	var AppConfig1, AppConfig = GetConfig(configcrd, config1)
+	Stack1 := "Lambdatack" + AppConfig1.Index
+	Stack2 := "DeleteLambdatack" + AppConfig1.Index
+
 	app := awscdk.NewApp(nil)
 
-	NewCreatedbStack(app, "CreatedbStack", &CreatedbStackProps{
-		awscdk.StackProps{
-			Env: env(),
-		},
-	})
+	destroy := app.Node().TryGetContext(jsii.String("destroy"))
+	//destroyStr := destroy.(string)
+	if destroy == "true" {
 
+		DeleteCreatedbStack(app, Stack2, &DeletedbStackProps{
+			awscdk.StackProps{
+				Env: env(AppConfig1.Region, AppConfig1.Account),
+			},
+		}, AppConfig, AppConfig1)
+
+	} else {
+
+		NewCreatedbStack(app, Stack1, &CreatedbStackProps{
+			awscdk.StackProps{
+				Env: env(AppConfig1.Region, AppConfig1.Account),
+			},
+		}, AppConfig, AppConfig1)
+	}
 	app.Synth(nil)
 }
 
-func env() *awscdk.Environment {
+func env(Region1 string, Account1 string) *awscdk.Environment {
 
 	return &awscdk.Environment{
-		Account: jsii.String("xxxxxx"),
-		Region:  jsii.String("eu-central-1"),
+		Account: &Account1,
+		Region:  &Region1,
 	}
-
 }

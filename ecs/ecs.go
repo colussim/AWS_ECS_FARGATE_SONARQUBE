@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -16,40 +17,56 @@ type EcsStackProps struct {
 	awscdk.StackProps
 }
 
-// Declare a struct for Config fields
-type Configuration struct {
+type ConfAuth struct {
 	Region          string
-	ClusterName     string
+	Account         string
+	SSOProfile      string
 	Index           string
 	VPCid           string
 	SecurityGroupID string
 }
 
-func GetConfig(configjs Configuration) Configuration {
+// Declare a struct for Config fields
+type Configuration struct {
+	ClusterName string
+}
+
+func GetConfig(configcrd ConfAuth, configjs Configuration) (ConfAuth, Configuration) {
 
 	fconfig, err := os.ReadFile("config.json")
 	if err != nil {
-		panic("Problem with the configuration file : config.json")
+		panic("❌ Problem with the configuration file : config.json")
 		os.Exit(1)
 	}
-	json.Unmarshal(fconfig, &configjs)
-	return configjs
+	if err := json.Unmarshal(fconfig, &configjs); err != nil {
+		fmt.Println("❌ Error unmarshaling JSON:", err)
+		os.Exit(1)
+	}
+
+	fconfig2, err := os.ReadFile("../config_crd.json")
+	if err != nil {
+		panic("❌ Problem with the configuration file : config_crd.json")
+		os.Exit(1)
+	}
+	if err := json.Unmarshal(fconfig2, &configcrd); err != nil {
+		fmt.Println("❌ Error unmarshaling JSON:", err)
+		os.Exit(1)
+	}
+	return configcrd, configjs
 }
 
-func NewEcsStack(scope constructs.Construct, id string, props *EcsStackProps) awscdk.Stack {
+func NewEcsStack(scope constructs.Construct, id string, props *EcsStackProps, AppConfig Configuration, AppConfig1 ConfAuth) awscdk.Stack {
 	var sprops awscdk.StackProps
 	if props != nil {
 		sprops = props.StackProps
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
-	var config1 Configuration
-	var AppConfig = GetConfig(config1)
 
 	// Get VPC
-	PartVpc := awsec2.Vpc_FromLookup(stack, &AppConfig.VPCid, &awsec2.VpcLookupOptions{VpcId: &AppConfig.VPCid})
+	PartVpc := awsec2.Vpc_FromLookup(stack, &AppConfig1.VPCid, &awsec2.VpcLookupOptions{VpcId: &AppConfig1.VPCid})
 
 	// Create Cluster
-	clustername := AppConfig.ClusterName + AppConfig.Index
+	clustername := AppConfig.ClusterName + AppConfig1.Index
 	awsecs.NewCluster(stack, jsii.String("FargateCluster"), &awsecs.ClusterProps{
 		Vpc:         PartVpc,
 		ClusterName: &clustername,
@@ -61,22 +78,27 @@ func NewEcsStack(scope constructs.Construct, id string, props *EcsStackProps) aw
 func main() {
 	defer jsii.Close()
 
+	// Read configuration from config.json file
+	var configcrd ConfAuth
+	var config1 Configuration
+	var AppConfig1, AppConfig = GetConfig(configcrd, config1)
+	Stack1 := "EcsStack" + AppConfig1.Index
+
 	app := awscdk.NewApp(nil)
 
-	NewEcsStack(app, "EcsStack", &EcsStackProps{
+	NewEcsStack(app, Stack1, &EcsStackProps{
 		awscdk.StackProps{
-			Env: env(),
+			Env: env(AppConfig1.Region, AppConfig1.Account),
 		},
-	})
+	}, AppConfig, AppConfig1)
 
 	app.Synth(nil)
 }
 
-func env() *awscdk.Environment {
+func env(Region1 string, Account1 string) *awscdk.Environment {
 
 	return &awscdk.Environment{
-		Account: jsii.String("xxxxxxx"),
-		Region:  jsii.String("eu-central-1"),
+		Account: &Account1,
+		Region:  &Region1,
 	}
-
 }

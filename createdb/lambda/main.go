@@ -18,6 +18,7 @@ func main() {
 	dbName := os.Getenv("DATABASE_NAME")
 	dbUsername := os.Getenv("DATABASE_USERNAME")
 	dbPassword := os.Getenv("DATABASE_PASSWORD")
+	passSonar := os.Getenv("PASS_SONAR")
 	Index := os.Getenv("DATABASE_PARTNER")
 
 	// Create a PostgreSQL connection string
@@ -39,6 +40,7 @@ func main() {
 	}
 	query := string(sqlScript)
 	query = strings.ReplaceAll(query, "?", Index)
+	query = strings.Replace(query, "'PASSWD'", fmt.Sprintf("'%s'", passSonar), -1)
 
 	Message := fmt.Sprintf("Create Database sonarqube_part%s and Role sonarqube_%s", Index, Index)
 	fmt.Println(Message)

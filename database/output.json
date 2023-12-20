@@ -1,0 +1,6 @@
+{
+  "DatabaseStack02": {
+    "ExportsOutputFnGetAttDBsonar02EndpointAddress94619064": "dbsonar-02.cm9tnlr4x0ln.eu-central-1.rds.amazonaws.com",
+    "RdsEndpoint": "dbsonar-02.cm9tnlr4x0ln.eu-central-1.rds.amazonaws.com"
+  }
+}
