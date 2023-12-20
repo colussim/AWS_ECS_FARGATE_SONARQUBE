@@ -8,4 +8,5 @@
 	"Index":           "1",
 	"LambdaFunctionName": "InitLambdaFn-SonarInitDB",
 	"SecretNameSonarqube" : "prod/sonarqube"
+
 }

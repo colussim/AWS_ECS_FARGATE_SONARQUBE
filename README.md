@@ -8,6 +8,7 @@ This tutorial aims to show you how to set up SonarQube on AWS Elastic Container 
 The AWS CDK lets you build reliable, scalable, cost-effective applications in the cloud with the considerable expressive power of a programming language.
 A CloudFormation template is generated for each deployment.
 
+
 ![Flow CDK](images/diagramcdk.png)
 
 

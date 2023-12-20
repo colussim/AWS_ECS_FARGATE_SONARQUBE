@@ -18,7 +18,6 @@ import (
 	"github.com/aws/jsii-runtime-go"
 )
 
-//EndPointRDS string
 
 type DatabaseStackProps struct {
 	awscdk.StackProps
