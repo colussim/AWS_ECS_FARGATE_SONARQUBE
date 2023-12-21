@@ -30,6 +30,19 @@ Before you get started, you’ll need to have these things:
 * A AWS Security Group
 * bash version 4+
 
+To test ability to connect to AWS with newly created Access Key ID and Secret Access Key you need to use the following command:
+```
+:> aws sts get-caller-identity
+
+{
+    "UserId": "XXXXXXXXXX",
+    "Account": "XXXXXXXXXX",
+    "Arn": "arn:aws:iam::XXXXX:user/XXXX"
+}
+```
+You may need to provide additional parameters like --profile my_new_profile, if you created AWS security key pair for additional account.
+
+
 When setting up a new AWS environment for our project, one of the first things you'll need to do is create a VPC.
 When setting up the VPC, it is essential to configure security groups to control inbound and outbound traffic to and from the VPC. Security groups act as virtual firewalls, allowing only authorized traffic to pass through.
 The ports to be authorized (defined in the Security Groups) for input/output are : 9000 (sonarqube default port) , 2049 (EFS Volume) 
