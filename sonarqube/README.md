@@ -46,12 +46,12 @@ Run the following command to automatically install all the required modules base
 AWS_ECS_FARGATE_SONARQUBE:/sonarqube/> go mod download
 
 ```
-## ✅ Deploying your Lambda function
+## ✅ Deploying SonarQube
 
 Let’s deploy a SonarQube! When you’re ready, run **cdk.sh deploy**
 
 ```bash
-AWS_ECS_FARGATE_SONARQUBE:/createdb/> ./cdk.sh deploy
+AWS_ECS_FARGATE_SONARQUBE:/sonarqube/> ./cdk.sh deploy
 
 ✅  SonarqubeStack02
 
