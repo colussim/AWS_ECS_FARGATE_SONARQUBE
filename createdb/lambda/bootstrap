@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -euo pipefail
+
+# Exécutez votre binaire Go
+exec ./main
+
