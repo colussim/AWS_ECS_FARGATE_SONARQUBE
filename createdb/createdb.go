@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"context"
 	"encoding/json"
@@ -146,10 +145,10 @@ func GetSecret1(Secretname string, config aws.Config) string {
 	return Pass
 }
 
-func CreateLambdaFn(stack awscdk.Stack, PartVpc awsec2.IVpc, sonarSG awsec2.ISecurityGroup, AppConfig Configuration, User string, Pass string, PassSonar string, LambdaFunctionName string, Index string) {
+func CreateLambdaFn(stack awscdk.Stack, PartVpc awsec2.IVpc, sonarSG awsec2.ISecurityGroup, AppConfig Configuration, User string, Pass string, PassSonar string, LambdaFunctionName string, Index string) awslambda.IFunction {
 
-	awslambda.NewFunction(stack, &AppConfig.LambdaFunctionName, &awslambda.FunctionProps{
-		Runtime:           awslambda.Runtime_GO_1_X(),
+	lambdaFn := awslambda.NewFunction(stack, &AppConfig.LambdaFunctionName, &awslambda.FunctionProps{
+		Runtime:           awslambda.Runtime_PROVIDED_AL2(), // old version awslambda.Runtime_GO_1_X(),
 		Code:              awslambda.Code_FromAsset(jsii.String("lambda/"), &awss3assets.AssetOptions{}),
 		Handler:           jsii.String("main"),
 		Vpc:               PartVpc,
@@ -170,7 +169,7 @@ func CreateLambdaFn(stack awscdk.Stack, PartVpc awsec2.IVpc, sonarSG awsec2.ISec
 			"PASS_SONAR":        &PassSonar,
 		},
 	})
-
+	return lambdaFn
 }
 
 // Check if a Lambda function exists
@@ -182,13 +181,15 @@ func checkLambdaFunctionExists(ctx context.Context, client *lambda.Client, funct
 
 	if err != nil {
 		// Lambda function not exists
+		fmt.Println("❗️ Lambda function not exists")
 		return false, nil
 	}
 	// Lambda function exists
+	fmt.Println("❗️ Lambda function exists")
 	return true, nil
 }
 
-func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStackProps, AppConfig Configuration, AppConfig1 ConfAuth) awscdk.Stack {
+func NewCreatedbStack1(scope constructs.Construct, id string, props *CreatedbStackProps, AppConfig Configuration, AppConfig1 ConfAuth) awscdk.Stack {
 	var sprops awscdk.StackProps
 	if props != nil {
 		sprops = props.StackProps
@@ -279,6 +280,110 @@ func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStac
 		User, Pass := GetSecret(RDSsecret, config)
 		PassSonar := GetSecret1(SonarSecret, config)
 		CreateLambdaFn(stack, PartVpc, sonarSG, AppConfig, User, Pass, PassSonar, functionName, AppConfig1.Index)
+	}
+
+	return stack
+}
+
+func NewCreatedbStack(scope constructs.Construct, id string, props *CreatedbStackProps, AppConfig Configuration, AppConfig1 ConfAuth) awscdk.Stack {
+	var sprops awscdk.StackProps
+	if props != nil {
+		sprops = props.StackProps
+	}
+	stack := awscdk.NewStack(scope, &id, &sprops)
+
+	// Get Context
+	config, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		fmt.Println("❌ Error creating AWS session:", err)
+		os.Exit(1)
+	}
+
+	// Get Security Group
+	sonarSG := awsec2.SecurityGroup_FromLookupById(stack, jsii.String("SG"), &AppConfig1.SecurityGroupID)
+
+	// Get VPC
+	PartVpc := awsec2.Vpc_FromLookup(stack, &AppConfig1.VPCid, &awsec2.VpcLookupOptions{VpcId: &AppConfig1.VPCid})
+
+	lambdaClient := lambda.NewFromConfig(config)
+
+	// Specify the name of the Lambda function you want to check
+	functionName := AppConfig.LambdaFunctionName + AppConfig1.Index
+
+	functionExists, err := checkLambdaFunctionExists(context.TODO(), lambdaClient, functionName)
+	if err != nil {
+		log.Fatalf("Error checking Lambda function existence: %v", err)
+	}
+
+	if !functionExists {
+		// If the function does not exist, get the secrets and create the Lambda function
+		RDSsecret := AppConfig.SecretName + AppConfig1.Index
+		SonarSecret := AppConfig.SecretNameSonarqube + AppConfig1.Index
+
+		User, Pass := GetSecret(RDSsecret, config)
+		PassSonar := GetSecret1(SonarSecret, config)
+
+		lambdaFunction := CreateLambdaFn(stack, PartVpc, sonarSG, AppConfig, User, Pass, PassSonar, functionName, AppConfig1.Index)
+		if lambdaFunction != nil {
+			fmt.Printf("✅ Lambda function %s created successfully\n", functionName)
+		} else {
+			fmt.Printf("❌ Failed to create Lambda function %s\n", functionName)
+		}
+
+	} else {
+		// If the function exists, log information and update
+		fmt.Printf("Lambda function %s exists\n", functionName)
+
+		functionName := AppConfig.LambdaFunctionName
+		key := "DATABASE_PARTNER"
+
+		// Get the current Lambda function configuration
+		ConfigFn := &lambda.GetFunctionConfigurationInput{
+			FunctionName: aws.String(functionName),
+		}
+
+		configOutput, err := lambdaClient.GetFunctionConfiguration(context.TODO(), ConfigFn)
+		if err != nil {
+			fmt.Println("❌ Error getting Lambda function configuration: %v", err)
+			os.Exit(1)
+
+		}
+
+		// Copy existing environment variables
+		newEnvVars := make(map[string]string)
+		for k, v := range configOutput.Environment.Variables {
+			newEnvVars[k] = v
+		}
+		newEnvVars[key] = AppConfig1.Index
+
+		updateInput := &lambda.UpdateFunctionConfigurationInput{
+			FunctionName: aws.String(functionName),
+			//Environment:  &types.Environment{&key: AppConfig.Index},
+			Environment: &types.Environment{
+				Variables: newEnvVars,
+			},
+		}
+
+		_, updateErr := lambdaClient.UpdateFunctionConfiguration(context.TODO(), updateInput)
+		if updateErr != nil {
+			fmt.Println("❌ Error updating Lambda function configuration: %v", err)
+			os.Exit(1)
+
+		}
+
+		fmt.Printf("✅ Environment variable %s updated for Lambda function %s\n", key, functionName)
+
+		input3 := &lambda.InvokeInput{
+			FunctionName: aws.String(functionName),
+		}
+
+		resultex, err := lambdaClient.Invoke(context.TODO(), input3)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Printf("✅ Lambda function executed%s :\n", &resultex)
+		}
+
 	}
 
 	return stack
