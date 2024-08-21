@@ -29,6 +29,11 @@ Config.json :
 	SonarqubeDescSecret:   Description Secret associated with Access to PostgreSQL databases partner
 ```    
 
+* See [Supported PostgreSQL Database Versions](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts.General.DBVersions) run the following command :
+```bash
+AWS_ECS_FARGATE_SONARQUBE:/database/> aws rds describe-db-engine-versions --default-only --engine postgres
+
+```
 
 ## What does this task do?
 

@@ -18,7 +18,6 @@ import (
 	"github.com/aws/jsii-runtime-go"
 )
 
-
 type DatabaseStackProps struct {
 	awscdk.StackProps
 	RDSEndpoint *string
@@ -167,20 +166,32 @@ func NewDatabaseStack(scope constructs.Construct, id string, props *DatabaseStac
 	// Get VPC
 	PartVpc := awsec2.Vpc_FromLookup(stack, &AppConfig1.VPCid, &awsec2.VpcLookupOptions{VpcId: &AppConfig1.VPCid})
 	// Find public subnets in the VPC
-	allSubnets := []awsec2.ISubnet{}
+	/*	allSubnets := []awsec2.ISubnet{}
 
-	// Iterate through all subnets in the VPC
+		// Iterate through all subnets in the VPC
+		for _, subnet := range *PartVpc.PublicSubnets() {
+
+			allSubnets = append(allSubnets, subnet)
+
+		}*/
+
+	var subnetIds []*string
 	for _, subnet := range *PartVpc.PublicSubnets() {
-
-		allSubnets = append(allSubnets, subnet)
-
+		subnetIds = append(subnetIds, subnet.SubnetId())
 	}
+
 	// Create A RDS SubnetGroup
-	subnetGroup := awsrds.NewSubnetGroup(stack, &SBGroupRDS, &awsrds.SubnetGroupProps{
+	/*subnetGroup := awsrds.NewSubnetGroup(stack, &SBGroupRDS, &awsrds.SubnetGroupProps{
 		SubnetGroupName: &SBGroupRDS,
 		Vpc:             PartVpc,
 		VpcSubnets:      &awsec2.SubnetSelection{Subnets: &allSubnets},
 		Description:     jsii.String("RDS DB Subnet Group"),
+	})*/
+
+	subnetGroup := awsrds.NewCfnDBSubnetGroup(stack, &SBGroupRDS, &awsrds.CfnDBSubnetGroupProps{
+		DbSubnetGroupName:        jsii.String(SBGroupRDS),
+		SubnetIds:                &subnetIds,
+		DbSubnetGroupDescription: jsii.String("RDS DB Subnet Group"),
 	})
 
 	SecretNameSonar := AppConfig.SecretNameSonarqube + AppConfig1.Index
@@ -213,6 +224,7 @@ func NewDatabaseStack(scope constructs.Construct, id string, props *DatabaseStac
 
 	// Set DbInstanceIdentifier
 	DBIDDeploy := AppConfig.DBName + "-" + AppConfig1.Index
+	//DBIDDeploy := AppConfig.DBName + AppConfig1.Index
 
 	RegionA := AppConfig1.Region + "a"
 
@@ -235,7 +247,8 @@ func NewDatabaseStack(scope constructs.Construct, id string, props *DatabaseStac
 		Port:              &AppConfig.DBport,
 	})
 
-	subnetGroup.Node().AddDependency(rdsInstance)
+	//subnetGroup.Node().AddDependency(rdsInstance)
+	rdsInstance.AddDependsOn(subnetGroup)
 
 	rdsEndpoint := rdsInstance.AttrEndpointAddress()
 
