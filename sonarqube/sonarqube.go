@@ -1,7 +1,5 @@
 package main
 
-
-
 import (
 	"context"
 	"encoding/json"
@@ -184,27 +182,27 @@ func NewSonarqubeStack(scope constructs.Construct, id string, props *SonarqubeSt
 	/*--------------------------Set Inbount Rules------------------------------------------------------*/
 
 	// Add Rules Inbount port 9000 on http
-	sonarSG.AddIngressRule(awsec2.Peer_Ipv4(aws.String("0.0.0.0/0")),
+	/*sonarSG.AddIngressRule(awsec2.Peer_Ipv4(aws.String("0.0.0.0/0")),
 		awsec2.NewPort(&awsec2.PortProps{
 			Protocol:             awsec2.Protocol_TCP,
 			StringRepresentation: aws.String("Incoming web"),
-			FromPort:             aws.Float64(9000),
+			FromPort:             aws.Float64(80),
 			ToPort:               aws.Float64(9000),
 		}),
 		aws.String("Incoming http sonarQube"),
 		aws.Bool(false),
 	)
-	// Add Rules Inbount port 2049 on NFS
-	sonarSG.AddIngressRule(awsec2.Peer_Ipv4(aws.String("0.0.0.0/0")),
-		awsec2.NewPort(&awsec2.PortProps{
-			Protocol:             awsec2.Protocol_TCP,
-			StringRepresentation: aws.String("Incoming efs"),
-			FromPort:             aws.Float64(2049),
-			ToPort:               aws.Float64(2049),
-		}),
-		aws.String("Incoming EFS Volume"),
-		aws.Bool(false),
-	)
+		// Add Rules Inbount port 2049 on NFS
+		sonarSG.AddIngressRule(awsec2.Peer_Ipv4(aws.String("0.0.0.0/0")),
+			awsec2.NewPort(&awsec2.PortProps{
+				Protocol:             awsec2.Protocol_TCP,
+				StringRepresentation: aws.String("Incoming efs"),
+				FromPort:             aws.Float64(2049),
+				ToPort:               aws.Float64(2049),
+			}),
+			aws.String("Incoming EFS Volume"),
+			aws.Bool(false),
+		)*/
 
 	/*-----------------------------Created a PVC Volumes : EFS Data and Logs ----------------------*/
 
@@ -514,6 +512,14 @@ func NewGetIpStack(scope constructs.Construct, id string, props *GetipStackProps
 		os.Exit(1)
 	}
 
+	/*serviceName := awscdk.Fn_ImportValue(jsii.String("SonarQubeServiceName"))
+
+	publicIPAddress, err := getTaskPublicIPAddress(AppConfig.ClusterName+AppConfig1.Index, *serviceName)
+	if err != nil {
+		fmt.Println("❌ Error get publicIPAddress:", err)
+		os.Exit(1)
+	}*/
+
 	EndPoint := "http://" + publicIPAddress + ":9000"
 
 	awscdk.NewCfnOutput(stack, jsii.String("SonarQube EndPoint "), &awscdk.CfnOutputProps{
@@ -523,7 +529,7 @@ func NewGetIpStack(scope constructs.Construct, id string, props *GetipStackProps
 	return stack
 }
 
-func main() {
+/*func main() {
 
 	var configcrd ConfAuth
 	var config1 Configuration
@@ -549,6 +555,46 @@ func main() {
 
 	app.Synth(nil)
 
+}*/
+
+func main() {
+	var configcrd ConfAuth
+	var config1 Configuration
+	var AppConfig1, AppConfig = GetConfig(configcrd, config1)
+	Stack := "SonarqubeStack" + AppConfig1.Index
+	Stack2 := "GetPublicIP" + AppConfig1.Index
+
+	defer jsii.Close()
+
+	app := awscdk.NewApp(nil)
+
+	deploySonarqubeStr := app.Node().TryGetContext(jsii.String("deploySonarqube")).(string)
+	deployGetPublicIPStr := app.Node().TryGetContext(jsii.String("deployGetPublicIP")).(string)
+
+	deploySonarqube := deploySonarqubeStr == "true"
+	deployGetPublicIP := deployGetPublicIPStr == "true"
+
+	if deploySonarqube {
+		NewSonarqubeStack(app, Stack, &SonarqubeStackProps{
+			awscdk.StackProps{
+				Env: env(AppConfig1.Region, AppConfig1.Account),
+			},
+		}, AppConfig, AppConfig1)
+	} else {
+		fmt.Println("❌ SonarqubeStack will not be deployed.")
+	}
+
+	if deployGetPublicIP {
+		NewGetIpStack(app, Stack2, &GetipStackProps{
+			awscdk.StackProps{
+				Env: env(AppConfig1.Region, AppConfig1.Account),
+			},
+		}, AppConfig, AppConfig1)
+	} else {
+		fmt.Println("❌ GetPublicIP will not be deployed.")
+	}
+
+	app.Synth(nil)
 }
 
 func env(Region1 string, Account1 string) *awscdk.Environment {

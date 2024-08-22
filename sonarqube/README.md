@@ -25,6 +25,8 @@ Config.json :
 	Taskname            Task name
 ```
 
+❗️Depending on your AWS access configuration, you may need to adapt the code in **sonarqube.go** in the **Set Inbound Rules** section if you want to add ingress access rules (such as the SonarQube listening port 9000 and the storage listening port 2049). Alternatively, you can implement these rules directly in the Security Group that you are using.
+
 ## What does this task do?
 
 - Provision of 2 EFS volumes
